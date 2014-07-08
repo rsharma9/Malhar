@@ -42,18 +42,9 @@ public class RubyOperator extends ScriptOperator {
 		sc = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
 	}
 
-	@Override
-	public void setup(OperatorContext context)
-	{
-		for (String s : setupScripts) {
-			unit = sc.parse(s);
-		}
-	}
-
-	public void setEval(String script)
+	public void setEval()
 	{
 		this.type = Type.EVAL;
-		this.script = script;
 	}
 
 	public void setInvoke(String functionName)
@@ -70,9 +61,17 @@ public class RubyOperator extends ScriptOperator {
 				for (Map.Entry<String, Object> entry : tuple.entrySet()) {
 					sc.put(entry.getKey(), entry.getValue());
 				}
-				evalResult = unit.run();
+				for (String s : setupScripts) {
+					unit = sc.parse(s);
+					evalResult = unit.run();
+				}
+				
 			}
-			if(type == Type.INVOKE){
+			if(type == Type.INVOKE) {
+				
+				for (String s : setupScripts) {
+					unit = sc.parse(s);
+				}
 				Object[] args = new Object[tuple.size()];
 				int index = 0;
 				for (Map.Entry<String, Object> entry : tuple.entrySet()) {

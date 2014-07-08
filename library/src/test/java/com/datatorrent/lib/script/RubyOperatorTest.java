@@ -28,7 +28,7 @@ public class RubyOperatorTest
 {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testJavaOperator()
+	public void testJavaOperatorInvoke()
 	{
 		RubyOperator oper = new RubyOperator();
 		String setupScript = "def square(val)\n";
@@ -50,6 +50,34 @@ public class RubyOperatorTest
 		for (Object o : sink.collectedTuples) {
 			Integer val = Integer.parseInt(o.toString());
 			Assert.assertEquals("emitted should be 4", new Integer(4), val);
+		}
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testJavaOperatorEval()
+	{
+		RubyOperator oper = new RubyOperator();
+		String setupScript1 = "a = b+c";
+		String setupScript2 = "d = a*10";
+		oper.addSetupScript(setupScript1);
+		oper.addSetupScript(setupScript2);
+		oper.setEval();
+		oper.setPassThru(true);
+		CollectorTestSink sink = new CollectorTestSink();
+		oper.result.setSink(sink);
+		HashMap<String, Object> tuple = new HashMap<String, Object>();
+		tuple.put("b", new Integer(2));
+		tuple.put("c", new Integer(3));
+		oper.setup(null);
+		oper.beginWindow(0);
+		oper.inBindings.process(tuple);
+		oper.endWindow();
+		
+		Assert.assertEquals("number emitted tuples", 1, sink.collectedTuples.size());
+		for (Object o : sink.collectedTuples) {
+			Integer val = Integer.parseInt(o.toString());
+			Assert.assertEquals("emitted should be 50", new Integer(50), val);
 		}
 	}
 
