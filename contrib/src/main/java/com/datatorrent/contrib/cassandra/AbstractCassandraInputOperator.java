@@ -87,5 +87,4 @@ public abstract class AbstractCassandraInputOperator<T> extends AbstractStoreInp
       DTThrowable.rethrow(ex);
 		}
 	}
-
 }
