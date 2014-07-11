@@ -19,6 +19,7 @@ package com.datatorrent.contrib.cassandra;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.datatorrent.api.annotation.ShipContainingJars;
 import com.datatorrent.lib.db.AbstractBatchTransactionableStoreOutputOperator;
 
