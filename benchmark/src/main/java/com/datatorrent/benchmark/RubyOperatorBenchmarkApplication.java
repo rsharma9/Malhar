@@ -21,6 +21,8 @@ import com.datatorrent.api.DAG.Locality;
 import com.datatorrent.api.annotation.ApplicationAnnotation;
 import com.datatorrent.lib.io.ConsoleOutputOperator;
 import com.datatorrent.lib.script.RubyOperator;
+import com.datatorrent.lib.testbench.RandomEventGenerator;
+
 import org.apache.hadoop.conf.Configuration;
 
 /**
@@ -40,10 +42,12 @@ public class RubyOperatorBenchmarkApplication implements StreamingApplication {
 	@Override
 	public void populateDAG(DAG dag, Configuration conf) {
 		
-		RandomEventGeneratorWithMapOutput rand = dag.addOperator("rand", new RandomEventGeneratorWithMapOutput());
+		RandomEventGenerator rand = dag.addOperator("rand", new RandomEventGenerator());
 		rand.setMaxvalue(3000);
 		rand.setTuplesBlast(100);
-		rand.setKey("val");
+		
+		RandomMapOutput randMap = dag.addOperator("randMap", new RandomMapOutput());
+		randMap.setKey("val");
 		
 		RubyOperator ruby = dag.addOperator("ruby", new RubyOperator());
 		String setupScript = "def square(val)\n";
@@ -54,7 +58,8 @@ public class RubyOperatorBenchmarkApplication implements StreamingApplication {
 		
 		ConsoleOutputOperator console = dag.addOperator("console", new ConsoleOutputOperator());
 		
-		dag.addStream("rand_ruby", rand.map_data, ruby.inBindings).setLocality(locality);
+		dag.addStream("rand_randMap", rand.integer_data, randMap.input).setLocality(Locality.THREAD_LOCAL);
+		dag.addStream("randMap_ruby", randMap.map_data, ruby.inBindings).setLocality(locality);
 		dag.addStream("ruby_console", ruby.result, console.input).setLocality(locality);
 	}
 
