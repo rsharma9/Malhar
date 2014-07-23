@@ -5,10 +5,10 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.datatorrent.contrib.cassandra.AbstractCassandraTransactionableOutputOperatorPS;
+import com.datatorrent.contrib.cassandra.AbstractCassandraExactlyOnceOutputOperatorPS;
 
 
-public class CassandraOutputOperator extends  AbstractCassandraTransactionableOutputOperatorPS<Integer>{
+public class CassandraOutputOperator extends  AbstractCassandraExactlyOnceOutputOperatorPS<Integer>{
 
 	private int id = 0;
 

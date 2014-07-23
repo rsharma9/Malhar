@@ -16,14 +16,10 @@
 
 package com.datatorrent.contrib.cassandra;
 
-import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.datatorrent.api.Context;
-import com.datatorrent.api.annotation.ShipContainingJars;
-
-import javax.annotation.Nonnull;
-
+import com.datatorrent.lib.db.AbstractBatchTransactionableStoreOutputOperator;
 
 /**
  * <p>
@@ -46,37 +42,28 @@ import javax.annotation.Nonnull;
  * @param <T>type of tuple</T>
  * @since 1.0.2
  */
-@ShipContainingJars(classes = {com.datastax.driver.core.Cluster.class, com.codahale.metrics.Metric.class})
-public abstract class AbstractCassandraTransactionableOutputOperatorPS<T> extends AbstractCassandraTransactionableOutputOperator<T>{
 
-	private transient PreparedStatement updateCommand;
+public abstract class AbstractCassandraExactlyOnceOutputOperator<T> extends AbstractBatchTransactionableStoreOutputOperator<T, CassandraTransactionalStore> {
 
-	/**
-	 * Gets the statement which insert/update the table in the database.
-	 *
-	 * @return the cql statement to update a tuple in the database.
-	 */
-	@Nonnull
-	protected abstract PreparedStatement getUpdateCommand();
-
-	@Override
-	public void setup(Context.OperatorContext context)
-	{
-		super.setup(context);
-		updateCommand = getUpdateCommand();
+	public AbstractCassandraExactlyOnceOutputOperator(){
+		super();
 	}
 
 	/**
 	 * Sets the parameter of the insert/update statement with values from the tuple.
 	 *
 	 * @param tuple     tuple
-   * @return statement The statement to execute
+   * @return statement The statement to excecute
 	 * @throws DriverException
 	 */
-	protected abstract Statement setStatementParameters(PreparedStatement updateCommand, T tuple) throws DriverException;
+	protected abstract Statement getUpdateStatement(T tuple) throws DriverException;
 
 	@Override
-	protected Statement getUpdateStatement(T tuple){
-		return setStatementParameters(updateCommand, tuple);
+	public void processBatch(){
+    BatchStatement batchCommand = store.getBatchCommand();
+    for(T tuple: tuples)
+    {
+      batchCommand.add(getUpdateStatement(tuple));
+    }
 	}
 }

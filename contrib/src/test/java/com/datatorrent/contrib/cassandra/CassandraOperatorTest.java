@@ -86,13 +86,16 @@ public class CassandraOperatorTest
 
 			String cleanTable = "TRUNCATE " + TABLE_NAME + ";";
 			session.execute(cleanTable);
+			String cleanMetaTable = "TRUNCATE " + "dt_meta" + ";";
+			session.execute(cleanMetaTable);
+			
 		}
 		catch (DriverException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static class TestOutputOperator extends AbstractCassandraTransactionableOutputOperatorPS<TestEvent>
+	private static class TestOutputOperator extends AbstractCassandraExactlyOnceOutputOperatorPS<TestEvent>
 	{
 		private static final String INSERT_STMT = "INSERT INTO " + KEYSPACE+"." +TABLE_NAME + " (ID) VALUES (?);";
 
@@ -142,6 +145,56 @@ public class CassandraOperatorTest
 			}
 		}
 	}
+
+	private static class TestAtleastOnceOutputOperator extends AbstractCassandraAtLeastOnceOutputOperator<TestEvent>
+	{
+		private static final String INSERT_STMT = "INSERT INTO " + KEYSPACE+"." +TABLE_NAME + " (ID) VALUES (?);";
+
+		TestAtleastOnceOutputOperator()
+		{
+			cleanTable();
+		}
+
+		public long getNumOfEventsInStore()
+		{
+
+			try {
+				Cluster cluster = Cluster.builder()
+						.addContactPoint(NODE).build();
+				Session session = cluster.connect(KEYSPACE);
+
+				String countQuery = "SELECT count(*) from " + TABLE_NAME + ";";
+				ResultSet resultSet = session.execute(countQuery);
+				for(Row row: resultSet)
+				{
+					return row.getLong(0);
+				}
+				return 0;
+			}
+			catch (DriverException e) {
+				throw new RuntimeException("fetching count", e);
+			}
+		}
+
+		@Override
+		protected Statement getUpdateStatement(TestEvent tuple)
+				throws DriverException {
+			
+			PreparedStatement pStmnt;
+			BoundStatement boundStatement;
+			Statement stmnt;
+			try {
+				pStmnt = store.getSession().prepare(INSERT_STMT);
+				boundStatement = new BoundStatement(pStmnt);
+				stmnt = boundStatement.bind(tuple.id);
+				return stmnt;
+			}
+			catch (DriverException e) {
+				throw new RuntimeException("preparing", e);
+			}
+		}
+	}
+
 
 	private static class TestInputOperator extends AbstractCassandraInputOperator<TestEvent>
 	{
@@ -194,7 +247,7 @@ public class CassandraOperatorTest
 
 
 	@Test
-	public void testCassandraOutputOperator()
+	public void TestCassandraExactlyOnceOutputOperator()
 	{
 		CassandraTransactionalStore transactionalStore = new CassandraTransactionalStore();
 		transactionalStore.setNode(NODE);
@@ -248,6 +301,37 @@ public class CassandraOperatorTest
 		inputOperator.endWindow();
 
 		Assert.assertEquals("rows from db", 10, sink.collectedTuples.size());
+	}
+	
+	@Test
+	public void TestCassandraAtLeastOnceOutputOperator()
+	{
+		CassandraTransactionalStore transactionalStore = new CassandraTransactionalStore();
+		transactionalStore.setNode(NODE);
+		transactionalStore.setKeyspace(KEYSPACE);
+
+		AttributeMap.DefaultAttributeMap attributeMap = new AttributeMap.DefaultAttributeMap();
+		attributeMap.put(DAG.APPLICATION_ID, APP_ID);
+		OperatorContextTestHelper.TestIdOperatorContext context = new OperatorContextTestHelper.TestIdOperatorContext(OPERATOR_ID, attributeMap);
+
+		TestAtleastOnceOutputOperator outputOperator = new TestAtleastOnceOutputOperator();
+
+		outputOperator.setStore(transactionalStore);
+
+		outputOperator.setup(context);
+
+		List<TestEvent> events = Lists.newArrayList();
+		for (int i = 0; i < 10; i++) {
+			events.add(new TestEvent(i));
+		}
+
+		outputOperator.beginWindow(0);
+		for (TestEvent event : events) {
+			outputOperator.input.process(event);
+		}
+		outputOperator.endWindow();
+
+		Assert.assertEquals("rows in db", 10, outputOperator.getNumOfEventsInStore());
 	}
 }
 
