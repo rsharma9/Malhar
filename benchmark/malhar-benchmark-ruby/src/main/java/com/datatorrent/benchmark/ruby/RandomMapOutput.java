@@ -1,4 +1,4 @@
-package com.datatorrent.benchmark;
+package com.datatorrent.benchmark.ruby;
 
 import java.util.HashMap;
 import com.datatorrent.api.BaseOperator;

@@ -1,25 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
   <modelVersion>4.0.0</modelVersion>
-
+  
   <parent>
     <groupId>com.datatorrent</groupId>
-    <artifactId>malhar-all</artifactId>
+    <artifactId>malhar-benchmark</artifactId>
     <version>1.0.3-SNAPSHOT</version>
   </parent>
-
-  <artifactId>malhar-benchmark</artifactId>
-  <name>Benchmark</name>
-  <packaging>pom</packaging>
-
-  <properties>
-    <maven.deploy.skip>false</maven.deploy.skip>
-    <skipTests>true</skipTests>
-  </properties>
   
-
+  
+  <artifactId>malhar-benchmark-legacy</artifactId>
+  <name>Benchmark-Legacy</name>
+  <packaging>jar</packaging>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <dependencies>
-    <dependency>
+  <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>malhar-library</artifactId>
       <version>${project.version}</version>
@@ -61,14 +61,4 @@
       <optional>true</optional>
     </dependency>
   </dependencies>
-  
-  
-  
-  <modules>
-  	<module>
-  	har-benchmark-ruby</module>
-    <module>malhar-benchmark-legacy</module>
-  </modules>
-  
-  
 </project>
