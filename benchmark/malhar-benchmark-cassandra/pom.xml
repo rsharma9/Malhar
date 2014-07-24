@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    
   <modelVersion>4.0.0</modelVersion>
   
   <parent>
@@ -10,9 +9,8 @@
     <version>1.0.3-SNAPSHOT</version>
   </parent>
   
-  
-  <artifactId>malhar-benchmark-legacy</artifactId>
-  <name>Benchmark-Legacy</name>
+  <artifactId>malhar-benchmark-cassandra</artifactId>
+  <name>Benchmark-Cassandra</name>
   <packaging>jar</packaging>
   
   <properties>
@@ -20,33 +18,36 @@
     <skipTests>true</skipTests>
     <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>distro-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.build.finalName}</finalName>
+							<descriptors>
+								<descriptor>assemble.xml</descriptor>
+							</descriptors>
+							<archiverConfig>
+								<defaultDirectoryMode>0755</defaultDirectoryMode>
+							</archiverConfig>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
   
   <dependencies>
     <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_2.10</artifactId>
-      <version>0.8.1.1</version>
-      <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-simple</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.zookeeper</groupId>
-          <artifactId>zookeeper</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-        <dependency>
       <groupId>com.datastax.cassandra</groupId>
       <artifactId>cassandra-driver-core</artifactId>
       <version>2.0.2</version>
