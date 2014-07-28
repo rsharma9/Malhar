@@ -26,9 +26,8 @@ import org.apache.hadoop.conf.Configuration;
 /**
  * 
  * Application to benchmark the performance of aerospike output operator.
- * The operator was tested on following configuration:
- * Virtual Box with 10GB ram, 4 processor cores on an i7 machine with 16GB ram
- * The number of tuples processed per second were around 20,000
+ * The operator was tested on DT cluster and the number of tuples processed 
+ * by the operator per second were around 12,000
  *
  */
 
