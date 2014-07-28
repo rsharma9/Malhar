@@ -25,14 +25,13 @@ import com.datatorrent.contrib.cassandra.CassandraTransactionalStore;
 
 /**
  * 
- *Application to benchmark the performance of cassandra output operator.
- *The operator was tested on following configuration:
- *Virtual Box with 10GB ram, 4 processor cores on an i7 machine with 16GB ram
- *The number of tuples processed per second were around 20,000
+ * Application to benchmark the performance of cassandra output operator.
+ * The operator was tested on DT cluster and the number of tuples processed 
+ * per second by the operator were around 70,000.
  *
  */
 
-@ApplicationAnnotation(name="CassandraOperatorDemo")
+@ApplicationAnnotation(name="CassandraOutputOperatorBenchmark")
 public class CassandraOutputBenchmarkApplication implements StreamingApplication
 {
   private final Locality locality = null;
