@@ -15,6 +15,7 @@
  */
 package com.datatorrent.contrib.splunk;
 
+import java.io.IOException;
 import java.util.Properties;
 
 public class SplunkInputFromForwarderTest {
@@ -38,6 +39,17 @@ public class SplunkInputFromForwarderTest {
     iff.setConfigProperties(props);
     iff.setPort(6789);
     iff.setTopic("integer_values");
-    iff.startServer();
+    try {
+      iff.startServer();
+      iff.process();
+    } catch (IOException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        iff.startServer();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 }

@@ -36,9 +36,11 @@ public abstract class SplunkInputFromForwarder<T> {
 
   private final int DEFAULT_PORT = 6789;
   private int port;
-  private transient Producer<String, T> producer;
+  protected Producer<String, T> producer;
   private String topic;
   private Properties configProperties = new Properties();
+  protected ServerSocket serverSocket;
+  protected Socket connectionSocket;
 
   public SplunkInputFromForwarder() {
     port = DEFAULT_PORT;
@@ -79,22 +81,25 @@ public abstract class SplunkInputFromForwarder<T> {
     }
   }
 
-  public void startServer() {
-    ServerSocket serverSocket;
-    Socket connectionSocket;
+  public void startServer() throws IOException {
     ProducerConfig producerConfig = new ProducerConfig(configProperties);
     producer = new Producer<String, T>(producerConfig);
-    try {
-      serverSocket = new ServerSocket(port);
-      connectionSocket = serverSocket.accept();
-      String line;
-      BufferedReader reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-      while(true) {
-        line = reader.readLine();
-        writeToKafka(line);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+    serverSocket = new ServerSocket(port);
+  }
+
+  public void process() throws IOException {
+    connectionSocket = serverSocket.accept();
+    String line;
+    BufferedReader reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+    while(true) {
+      line = reader.readLine();
+      writeToKafka(line);
     }
+  }
+
+  public void stopServer() throws IOException {
+    serverSocket.close();
+    connectionSocket.close();
+    producer.close();
   }
 }

@@ -26,27 +26,29 @@ import com.datatorrent.api.AttributeMap;
 import com.datatorrent.api.AttributeMap.Attribute;
 import com.datatorrent.api.Context.OperatorContext;
 
-public class HBaseNameValueCsvPutOperatorTest {
-  private static final Logger logger = LoggerFactory.getLogger(HBaseNameValueCsvPutOperatorTest.class);
+public class HBaseCsvMappingPutOperatorTest {
+  private static final Logger logger = LoggerFactory
+      .getLogger(HBaseCsvMappingPutOperatorTest.class);
 
   @Test
   public void testPut() throws Exception {
     try {
       HBaseTestHelper.startLocalCluster();
       HBaseTestHelper.clearHBase();
-      HBaseNameValueCsvPutOperator propPutOperator = new HBaseNameValueCsvPutOperator();
+      HBaseCsvMappingPutOperator csvMappingPutOperator = new HBaseCsvMappingPutOperator();
 
-      propPutOperator.getStore().setTableName("table1");
-      propPutOperator.getStore().setZookeeperQuorum("127.0.0.1");
-      propPutOperator.getStore().setZookeeperClientPort(2181);
-      String s = "name=milind,st=patrick,ct=fremont,sa=cali";
-      String s1 = "st=tasman,ct=sancla,name=milinda,sa=cali";
-      propPutOperator.setMapping("name=row,st=colfam0.street,ct=colfam0.city,sa=colfam0.state");
-      propPutOperator.setup(new OperatorContext() {
+      csvMappingPutOperator.getStore().setTableName("table1");
+      csvMappingPutOperator.getStore().setZookeeperQuorum("127.0.0.1");
+      csvMappingPutOperator.getStore().setZookeeperClientPort(2181);
+      String s = "patrick,fremont,cali,milinda";
+      String s1 = "gillett,santaclara,cali,milindas";
+      String s2= "aventferry,raleigh,nc,milind";
+      csvMappingPutOperator.setMappingString("colfam0.street,colfam0.city,colfam0.state,row");
+      csvMappingPutOperator.setup(new OperatorContext() {
 
         @Override
         public <T> T getValue(Attribute<T> key) {
-          return null;
+          return key.defaultValue;
         }
 
         @Override
@@ -66,17 +68,24 @@ public class HBaseNameValueCsvPutOperatorTest {
 
         }
       });
-      propPutOperator.beginWindow(0);
-      propPutOperator.input.process(s);
-      propPutOperator.input.process(s1);
-      propPutOperator.endWindow();
+      csvMappingPutOperator.beginWindow(0);
+      csvMappingPutOperator.input.process(s);
+      csvMappingPutOperator.input.process(s1);
+      csvMappingPutOperator.input.process(s2);
+      csvMappingPutOperator.endWindow();
       HBaseTuple tuple;
-      tuple = HBaseTestHelper.getHBaseTuple("milind", "colfam0", "street");
+
+      tuple = HBaseTestHelper
+          .getHBaseTuple("milind", "colfam0", "street");
+
       Assert.assertNotNull("Tuple", tuple);
       Assert.assertEquals("Tuple row", tuple.getRow(), "milind");
-      Assert.assertEquals("Tuple column family", tuple.getColFamily(),"colfam0");
-      Assert.assertEquals("Tuple column name", tuple.getColName(),"street");
-      Assert.assertEquals("Tuple column value", tuple.getColValue(),"patrick");
+      Assert.assertEquals("Tuple column family", tuple.getColFamily(),
+          "colfam0");
+      Assert.assertEquals("Tuple column name", tuple.getColName(),
+          "street");
+      Assert.assertEquals("Tuple column value", tuple.getColValue(),
+          "aventferry");
     } catch (IOException e) {
 
       logger.error(e.getMessage());
